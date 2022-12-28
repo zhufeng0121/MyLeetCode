@@ -3,19 +3,17 @@ package Design
 import "sync"
 
 type MessageQueue struct {
-
 	msgdata []interface{} // 缓冲区
 	len     int32
 
-	readPos int32
+	readPos   int32
 	readMutex sync.Mutex
 
-	writePos int32
+	writePos   int32
 	writeMutex sync.Mutex
 
 	emptyCond *sync.Cond
 	fullCond  *sync.Cond
-
 }
 
 func NewMQ(len int32) *MessageQueue {
@@ -25,14 +23,13 @@ func NewMQ(len int32) *MessageQueue {
 	}
 	l := &sync.Mutex{}
 	return &MessageQueue{
-		msgdata: make([]interface{}, len+1),
-		len:     len + 1,
-		readPos: 0,
+		msgdata:  make([]interface{}, len+1),
+		len:      len + 1,
+		readPos:  0,
 		writePos: 0,
 
-		emptyCond: sync.NewCond(1),
-		fullCond:  sync.NewCond(1),
-
+		emptyCond: sync.NewCond(l),
+		fullCond:  sync.NewCond(l),
 	}
 
 }
@@ -43,7 +40,7 @@ func (mq *MessageQueue) Put(in interface{}) {
 
 	mq.fullCond.L.Lock()
 	defer mq.fullCond.L.Unlock()
-	for (mq.writePos + 1) % mq.len == mq.readPos {
+	for (mq.writePos+1)%mq.len == mq.readPos {
 		//缓冲区为满
 		mq.fullCond.Wait()
 	}
@@ -69,7 +66,7 @@ func (mq *MessageQueue) Get(out interface{}) {
 		mq.emptyCond.Wait()
 	}
 	//读取
-	out = mq.msgdata[(mq.readPos) % mq.len]
+	out = mq.msgdata[(mq.readPos)%mq.len]
 	mq.readPos = (mq.readPos + 1) % mq.len
 	mq.fullCond.Signal()
 	return

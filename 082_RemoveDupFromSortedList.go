@@ -15,9 +15,8 @@ func deleteDuplicatesI(head *ListNode) *ListNode {
 		return head
 	}
 	//构造虚拟头节点
-	virtualHead := &ListNode{
+	Head := &ListNode{
 		Next: head,
-		Val:  -101,
 	}
 	//start 和 end 代表相同节点的区间起始节点和终止节点
 	start, end := head, head.Next
